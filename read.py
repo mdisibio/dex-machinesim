@@ -70,6 +70,19 @@ def handleInit(data):
 def masterHandshake():
     print "Doing master handshake"
     receivedData = ""
+    
+    print "waiting for ready"
+    ready = False 
+    while not ready:
+        for i in range(0,5):
+            x = ser.read()
+            if x == ENQ:
+                ser.write(DLE)
+                ser.write('0')
+                ser.flush()
+                ready = True
+                print "received ready response"
+      
     while True:
         x = ser.read()
         if len(x) > 0:
@@ -94,7 +107,28 @@ def masterHandshake():
 def slaveHandshake():
     print "Doing slave handshake"
     ser.flushInput()
-    sleep(0.01)
+    receivedData = ""
+    print "waiting for ready"
+    ser.write(ENQ)
+    ser.flush()   
+    ready = False 
+    while not ready:
+        for i in range(0,5):
+            x = ser.read()
+            if len(x) > 0:
+                receivedData += x
+                if len(receivedData) >= 2 and \
+                        receivedData[-2] == DLE and \
+                        receivedData[-1] == '0':
+                    print "Recevied ready response"
+                    ready = True
+                    break
+        if not ready:
+            ser.write(ENQ)
+            ser.flush()
+
+    
+    #sleep(0.01)
     #ser.write(DLE)
     ser.write(EOT)
     ser.flush()
@@ -106,6 +140,8 @@ def slaveHandshake():
         x = ser.read()
         if len(x) > 0:
             print "Recevied data in slave handshake: " + x + "=" + x.encode('hex')
+            if x == ENQ:
+                ser.write(ENQ)
         else:
             ser.write(EOT)
             ser.flush()
@@ -207,14 +243,20 @@ def waitConnection():
             for char in x:
                 if char == ENQ:
                     print "Received ENQ for init"
-                    #ser.write(ENQ)
-                    #slaveHandshake()
-                    #masterHandshake()
                     
-                    ser.write(DLE)
-                    masterHandshake()
+                    #master mode 
+                    ser.write(ENQ)
+                    ser.flush()
                     slaveHandshake()
+                    masterHandshake()
                     thirdHandshake()
+                    
+                    # slave mode
+                    #ser.write(DLE)
+                    #masterHandshake()
+                    #slaveHandshake()
+                    #thirdHandshake()
+                    
                     while True:
                         x = ser.read()
                         if len(x) > 0:
