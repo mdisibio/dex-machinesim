@@ -112,12 +112,17 @@ def slaveHandshake():
             return
     print "end fo slave handshake"
     
-def uploadblock(data):
+def uploadblock(data, final):
+    finalmarker = ETB
+    if final:
+        finalmarker = ETX
+
+    ser.flushInput()
     print "writing block: " + data
-    crc = crc16.crc16xmodem(data  + ETX)
+    crc = crc16.crc16xmodem(data  + finalmarker)
     print "old crc is ", crc
     crc = 0
-    for char in (data  + ETX):
+    for char in (data  + finalmarker):
         crc = crcblah(crc, char)
     print "new crc is ", crc
     sleep(0.01)
@@ -125,7 +130,7 @@ def uploadblock(data):
     ser.write(STX)
     ser.write(data)
     ser.write(DLE)
-    ser.write(ETX)
+    ser.write(finalmarker)
     
     ser.write(chr(crc & 0xFF))
     ser.write(chr(crc >> 8))
@@ -137,8 +142,10 @@ def uploadblock(data):
             print "Recevied data in uploadblock: " + x + "=" + x.encode('hex')
             receivedData += x
             if len(receivedData) >= 2 and \
-                    receivedData[-2] == DLE:
+                    receivedData[-2] == DLE and \
+                    (receivedData[-1] == '0' or receivedData[-1]=='1'):
                 print "received confirmation of block" 
+                return
     
         
 def thirdHandshake():
@@ -159,7 +166,9 @@ def thirdHandshake():
                     receivedData[-1] == '0':
                 print "Recevied query response"
                 break
-    uploadblock("hello")        
+    uploadblock("hello", False)        
+    uploadblock("hello2", False)
+    uploadblock("booyah", True)
     
     print "writing end of transmission"
     ser.write(EOT)
