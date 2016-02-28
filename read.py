@@ -3,12 +3,13 @@ import crc16
 from time import sleep
 from enum import Enum
 
+ser = None
+
 class MachineState(Enum):
     init = 1
     master_handshake=2
     slave_handshake=2
 
-ser = serial.Serial('/dev/ptyp3', 9600, timeout=0.01)
     
 SOH = chr(0x01)
 STX = chr(0x02)
@@ -236,6 +237,7 @@ def receiveData(data):
         handleSlaveHandshake(data)
         
 def waitConnection():
+    print "Waiting for connection"
     while True:
         x = ser.read()
         if len(x) > 0:
@@ -262,4 +264,20 @@ def waitConnection():
                         if len(x) > 0:
                             print "Recevied data in last phase: " + x + "=" + x.encode('hex')                        
 
-waitConnection()
+def openConnection():
+    path = '/dev/ptyp3'
+    print "opening connection to " + path
+    global ser
+    ser = serial.Serial(path, 9600, timeout=0.01)
+
+ 
+
+while True:
+    print "--------------------------------"
+    openConnection()
+    try:
+        waitConnection()
+    except serial.SerialException:
+        print "Serial exception"
+        print "Closing connection"
+        ser.close()
