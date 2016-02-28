@@ -166,9 +166,9 @@ def thirdHandshake():
                     receivedData[-1] == '0':
                 print "Recevied query response"
                 break
-    uploadblock("hello", False)        
-    uploadblock("hello2", False)
-    uploadblock("booyah", True)
+    uploadblock("hello\n", False)        
+    uploadblock("hello2\n", False)
+    uploadblock("booyah\n", True)
     
     print "writing end of transmission"
     ser.write(EOT)
