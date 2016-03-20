@@ -75,7 +75,7 @@ class DexMachineSim:
             for i in range(0,5):
                 x = self.ser.read()
                 if x == ENQ:
-                    print "Received ENQ, replying.."
+                    print "Received ENQ, replying with DLE,0.."
                     self.ser.write(DLE)
                     self.ser.write('0')
                     self.ser.flush()
@@ -126,16 +126,16 @@ class DexMachineSim:
         
         self.ser.write(EOT)
         self.ser.flush()
-        while True:
-            x = self.ser.read()
-            if len(x) > 0:
-                self.printReceivedData(x)
-                if x == ENQ:
-                    self.ser.write(ENQ)
-            else:
-                self.ser.write(EOT)
-                self.ser.flush()
-                return
+        #while True:
+        #    x = self.ser.read()
+        #    if len(x) > 0:
+        #        self.printReceivedData(x)
+        #        if x == ENQ:
+        #            self.ser.write(ENQ)
+        #    else:
+        #        self.ser.write(EOT)
+        #        self.ser.flush()
+        #        return
         print "end of slave handshake"
         
     def printReceivedData(self, data):
